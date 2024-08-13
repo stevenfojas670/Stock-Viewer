@@ -1,29 +1,27 @@
-import os 
-import requests
+import os
 from flask import Flask, redirect, url_for, request, jsonify, url_for
 from flask_caching import Cache
 from markupsafe import escape
 from flask_cors import CORS
-from dotenv import load_dotenv
 from pymongo import MongoClient
 
-load_dotenv()
-
-API_KEY = os.getenv("AV_KEY")
+# Blueprints imports
+from blueprints.auth.signup import registration_bp
+from blueprints.auth.login import login_bp
 
 app = Flask(__name__)
 CORS(app)
 
-client = MongoClient('localhost', 27017, username='admin', password='admin')
+app.config['AV_KEY'] = os.environ.get('AV_KEY')
+app.config['SECRET_KEY'] = os.environ.get('JWT_KEY')
 
-db = client.flask_db
-todos = db.todos
+client = MongoClient('localhost', 27017)
+db = client['StockTrackerDB']
+users_collection = db['Users']
 
-
-@app.route("/", strict_slashes=False, methods=['GET'])
-def home():
-    if request.method == 'GET':
-        return "Home Page"
+# Registering blueprints
+app.register_blueprint(registration_bp)
+app.register_blueprint(login_bp)
 
 
 if __name__ == "__main__":
